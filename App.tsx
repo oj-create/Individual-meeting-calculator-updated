@@ -12,7 +12,7 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<CalculationResult | null>(null);
-  const [hourlyRate, setHourlyRate] = useState<number | string>(50);
+  // hourlyRate removed, defaulting to 50 internally
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -32,7 +32,7 @@ function App() {
   useEffect(() => {
     if (allEvents.length === 0) return;
 
-    const rate = Number(hourlyRate) || 0;
+    const rate = 50; // Hardcoded default rate
 
     // Filter events based on selected periodDays
     const cutoffDate = new Date();
@@ -47,7 +47,7 @@ function App() {
     const stats = calculateMeetingStats(filteredEvents, rate, periodDays);
     setResults(stats);
 
-  }, [periodDays, allEvents, hourlyRate]);
+  }, [periodDays, allEvents]);
 
   const handleConnect = async () => {
     setIsLoading(true);
@@ -190,8 +190,6 @@ Check yours at Quely.io/meeting-cost-calculator`;
           <ConnectCalendar
             onConnect={handleConnect}
             isLoading={isLoading}
-            hourlyRate={hourlyRate}
-            setHourlyRate={setHourlyRate}
           />
         ) : (
           <>
@@ -242,14 +240,14 @@ Check yours at Quely.io/meeting-cost-calculator`;
 
             <MethodologyDisclosure
               data={results}
-              hourlyRate={Number(hourlyRate) || 0}
+              hourlyRate={50}
               periodDays={30} // default
             />
           </>
         )}
 
         <div className="text-center text-slate-400 text-sm pb-8 mt-12">
-          <p>&copy; {new Date().getFullYear()} Quely. Calculations based on {hourlyRate < 1000 ? 'estimated hourly' : 'input'} rate.</p>
+          <p>&copy; {new Date().getFullYear()} Quely. Calculations based on estimated hourly rate.</p>
         </div>
 
       </main>
