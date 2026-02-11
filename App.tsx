@@ -3,9 +3,9 @@ import { ConnectCalendar } from './components/ConnectCalendar';
 import { ResultsDisplay } from './components/ResultsDisplay';
 // Ensuring correct import path
 import { MethodologyDisclosure } from './components/MethodologyDisclosure';
-import { loadGoogleScripts, handleAuthClick, listUpcomingEvents } from './utils/googleCalendar';
+import { loadGoogleScripts, handleAuthClick, listUpcomingEvents, getUserProfile } from './utils/googleCalendar';
 import { calculateMeetingStats, type CalculationResult } from './utils/calculator';
-import { initMixpanel, trackEvent } from './utils/analytics';
+import { initMixpanel, trackEvent, identifyUser } from './utils/analytics';
 import { ArrowRight, Copy, CheckCircle2 } from 'lucide-react';
 
 function App() {
@@ -54,6 +54,14 @@ function App() {
     setError(null);
     try {
       await handleAuthClick();
+
+      // Identify user
+      const userProfile = await getUserProfile();
+      if (userProfile.email) {
+        identifyUser(userProfile.email);
+        trackEvent('user_identified', { email: userProfile.email });
+      }
+
       setIsConnected(true);
       trackEvent('calendar_connected', { success: true });
 

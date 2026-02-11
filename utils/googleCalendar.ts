@@ -3,7 +3,7 @@ import { gapi } from 'gapi-script';
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = ""; // Not needed for OAuth 2.0 flow with consistent consent, but sometimes used. reliable flow uses just Client ID + Access Token.
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
-const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email';
 
 let tokenClient: any;
 let gapiInited = false;
@@ -44,10 +44,10 @@ export const loadGoogleScripts = (callback: () => void) => {
 export const handleAuthClick = () => {
   return new Promise<void>((resolve, reject) => {
     if (!tokenClient) {
-        reject('Google Identity Services not initialized');
-        return;
+      reject('Google Identity Services not initialized');
+      return;
     }
-    
+
     tokenClient.callback = async (resp: any) => {
       if (resp.error !== undefined) {
         reject(resp);
@@ -59,12 +59,29 @@ export const handleAuthClick = () => {
     if (gapi.client.getToken() === null) {
       // Prompt the user to select a Google Account and ask for consent to share their data
       // when establishing a new session.
-      tokenClient.requestAccessToken({prompt: 'consent'});
+      tokenClient.requestAccessToken({ prompt: 'consent' });
     } else {
       // Skip display of account chooser and consent dialog for an existing session.
-      tokenClient.requestAccessToken({prompt: ''});
+      tokenClient.requestAccessToken({ prompt: '' });
     }
   });
+};
+
+export const getUserProfile = async () => {
+  const token = gapi.client.getToken();
+  if (!token) throw new Error('No access token');
+
+  const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+    headers: {
+      Authorization: `Bearer ${token.access_token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user profile');
+  }
+
+  return await response.json();
 };
 
 export const listUpcomingEvents = async (days = 30) => {
