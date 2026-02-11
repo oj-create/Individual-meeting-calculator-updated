@@ -62,77 +62,59 @@ export const MethodologyDisclosure: React.FC<MethodologyProps> = ({
       {isOpen && (
         <div className="p-6 border-t border-slate-200 text-sm text-slate-600 space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
 
-          {/* Step 1: Hourly Rate */}
+          {/* Step 1: Meeting Time */}
           <section className="space-y-3">
             <h5 className="font-bold text-slate-900 flex items-center uppercase tracking-wide text-xs">
               <span className="bg-blue-100 text-blue-700 py-0.5 px-2 rounded mr-2">Step 1</span>
-              Your Value Rate
-            </h5>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
-              <div className="md:col-span-3">
-                <p className="text-sm">
-                  We use your input of <span className="font-bold text-slate-900">{formatCurrency(hourlyRate)}/hr</span>.
-                  <br />
-                  <span className="text-xs text-slate-400 italic">
-                    (If you entered a salary, we'd typically add a {BURDEN_MULTIPLIER}x burden multiplier for taxes/benefits, but here we use your direct input).
-                  </span>
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Step 2: Direct Costs */}
-          <section className="space-y-3">
-            <h5 className="font-bold text-slate-900 flex items-center uppercase tracking-wide text-xs">
-              <span className="bg-red-100 text-red-700 py-0.5 px-2 rounded mr-2">Step 2</span>
-              Your Direct Meeting Cost (Annualized)
-            </h5>
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 font-mono text-xs md:text-sm">
-              <p className="flex flex-wrap items-center gap-2">
-                <span>{formatCurrency(hourlyRate)}/hr</span>
-                <span className="text-slate-400">×</span>
-                <span>{formatNumber(data.hoursPerWeek, 1)} hrs/wk</span>
-                <span className="text-slate-400">×</span>
-                <span>{WORK_WEEKS_PER_YEAR} weeks</span>
-                <span className="text-slate-400">=</span>
-                <span className="font-bold text-red-600 border-b-2 border-red-200">{formatCurrency(annualizedMeetingCost)}</span>
-              </p>
-            </div>
-          </section>
-
-          {/* Step 3: Distraction Tax */}
-          <section className="space-y-3">
-            <h5 className="font-bold text-slate-900 flex items-center uppercase tracking-wide text-xs">
-              <span className="bg-orange-100 text-orange-700 py-0.5 px-2 rounded mr-2">Step 3</span>
-              The Distraction Tax
+              Smart Meeting Filtering
             </h5>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
-              <p className="mb-3 text-sm">
-                You average <span className="font-bold">{formatNumber(meetingsPerWeek, 1)} meetings/week</span>.
+              <p className="text-sm mb-2">
+                We don't just sum up every event on your calendar. To get an accurate picture of your <strong>collaborative load</strong>, we apply smart filters:
               </p>
-              <div className="font-mono text-xs md:text-sm space-y-2">
-                <p className="text-slate-500 italic mb-2">Formula: Meetings × {switchMinutes}min Penalty (UC Irvine research) × Rate × Weeks</p>
-                <p className="flex flex-wrap items-center gap-2">
-                  <span>{formatNumber(meetingsPerWeek, 1)} mtgs</span>
-                  <span className="text-slate-400">×</span>
-                  <span>{formatNumber(CONTEXT_SWITCH_HOURS, 2)} hrs ({switchMinutes}m)</span>
-                  <span className="text-slate-400">×</span>
-                  <span>{formatCurrency(hourlyRate)}</span>
-                  <span className="text-slate-400">×</span>
-                  <span>{WORK_WEEKS_PER_YEAR} weeks</span>
-                  <span className="text-slate-400">=</span>
-                  <span className="font-bold text-orange-600 border-b-2 border-orange-200">{formatCurrency(annualizedDistractionCost)}</span>
-                </p>
-              </div>
+              <ul className="list-disc pl-5 space-y-1 text-slate-500">
+                <li><strong>Excludes solo work:</strong> Events with fewer than 2 attendees are counted as focus time, not meetings.</li>
+                <li><strong>Excludes all-day events:</strong> We ignore full-day blocks (OOO, holidays) to prevent skewing the data.</li>
+                <li><strong>Validates duration:</strong> Only meetings with realistic durations (under 8 hours) are included.</li>
+              </ul>
             </div>
           </section>
 
-          <div className="text-center pt-4">
-            <p className="font-bold text-slate-900">Total Projected Annual Waste</p>
-            <p className="text-2xl font-black text-slate-900">
-              {formatCurrency(annualizedMeetingCost)} <span className="text-slate-400 font-normal text-lg">+</span> {formatCurrency(annualizedDistractionCost)} <span className="text-slate-400 font-normal text-lg">=</span> {formatCurrency(totalAnnualWaste)}
-            </p>
-          </div>
+          {/* Step 2: Context Switching */}
+          <section className="space-y-3">
+            <h5 className="font-bold text-slate-900 flex items-center uppercase tracking-wide text-xs">
+              <span className="bg-orange-100 text-orange-700 py-0.5 px-2 rounded mr-2">Step 2</span>
+              The "Switching Tax" (Science-Backed)
+            </h5>
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+              <p className="text-sm mb-3">
+                Research from the <strong>University of California, Irvine</strong> found that it takes an average of <strong>23 minutes and 15 seconds</strong> to get back on task after an interruption.
+              </p>
+              <div className="font-mono text-xs md:text-sm bg-white p-3 rounded border border-slate-200">
+                <p className="font-bold text-slate-700">Formula:</p>
+                <p className="text-slate-500">Total Meetings × 23 minutes = <span className="text-orange-600 font-bold">Total Lost Focus Time</span></p>
+              </div>
+              <p className="text-xs text-slate-400 mt-2 italic">
+                This "fragmentation" of your day is often more costly than the meeting itself.
+              </p>
+            </div>
+          </section>
+
+          {/* Step 3: Cost Valuation */}
+          <section className="space-y-3">
+            <h5 className="font-bold text-slate-900 flex items-center uppercase tracking-wide text-xs">
+              <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded mr-2">Step 3</span>
+              Value Calculation
+            </h5>
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+              <p className="text-sm">
+                To estimate the financial impact, we apply a standardized blended hourly rate of <strong>{formatCurrency(hourlyRate)}/hr</strong> to your total meeting and context switching hours.
+              </p>
+              <p className="text-xs text-slate-400 mt-2">
+                This provides a baseline for the "company cost" of your time spent in these activities.
+              </p>
+            </div>
+          </section>
 
         </div>
       )}
