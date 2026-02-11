@@ -16,6 +16,10 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // New state for time range filtering
+  const [allEvents, setAllEvents] = useState<any[]>([]); // Store raw 90-day events
+  const [periodDays, setPeriodDays] = useState<number>(30); // Default to 30 days
+
   useEffect(() => {
     loadGoogleScripts(() => {
       console.log('Google Scripts Loaded');
@@ -23,6 +27,27 @@ function App() {
     initMixpanel();
     trackEvent('page_view', { page: 'individual_calculator' });
   }, []);
+
+  // Re-calculate stats when periodDays or allEvents changes
+  useEffect(() => {
+    if (allEvents.length === 0) return;
+
+    const rate = Number(hourlyRate) || 0;
+
+    // Filter events based on selected periodDays
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - periodDays);
+
+    const filteredEvents = allEvents.filter(event => {
+      if (!event.start.dateTime) return false;
+      const eventDate = new Date(event.start.dateTime);
+      return eventDate >= cutoffDate;
+    });
+
+    const stats = calculateMeetingStats(filteredEvents, rate, periodDays);
+    setResults(stats);
+
+  }, [periodDays, allEvents, hourlyRate]);
 
   const handleConnect = async () => {
     setIsLoading(true);
@@ -32,20 +57,18 @@ function App() {
       setIsConnected(true);
       trackEvent('calendar_connected', { success: true });
 
-      const days = 30;
-      const events = await listUpcomingEvents(days);
-      const rate = Number(hourlyRate) || 0;
-      const stats = calculateMeetingStats(events, rate, days);
+      // Fetch 90 days of data upfront to allow client-side filtering
+      const maxDays = 90;
+      const events = await listUpcomingEvents(maxDays);
+      setAllEvents(events); // This triggers the useEffect above
+      setPeriodDays(30); // Default to 30 days on new connect
 
-      setResults(stats);
-      trackEvent('calculator_result_generated', {
-        calculator_type: 'individual',
-        source_page: window.location.pathname,
-        calendar_connected: true,
-        date_range_used: days,
-        total_meetings: stats.totalMeetings,
-        total_hours: stats.totalHours,
-        total_cost: stats.totalCost
+      // Initial stats for 30 days (calculated in useEffect, but could be done here for immediate feedback if needed)
+      // The useEffect will handle the initial calculation once allEvents is set.
+
+      trackEvent('data_fetched', {
+        count: events.length,
+        period: maxDays
       });
 
     } catch (err: any) {
@@ -59,6 +82,7 @@ function App() {
 
   const handleReset = () => {
     setResults(null);
+    setAllEvents([]);
     setIsConnected(false);
     trackEvent('calculator_reset');
   };
@@ -174,6 +198,8 @@ Check yours at Quely.io/meeting-cost-calculator`;
             <ResultsDisplay
               results={results}
               onReset={handleReset}
+              periodDays={periodDays}
+              onPeriodChange={setPeriodDays}
             />
 
             {/* Action Buttons */}
