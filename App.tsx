@@ -165,8 +165,7 @@ Check yours at Quely.io/meeting-cost-calculator`;
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <p className="text-xl text-white max-w-2xl leading-relaxed opacity-90 drop-shadow-md">
-              Connect your calendar to reveal the true cost of your time.
-              <br />Secure, private, and instant.
+              Connect your calendar to reveal how much time you have spent in meetings so far.
             </p>
 
             <a

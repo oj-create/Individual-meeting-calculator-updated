@@ -21,3 +21,11 @@ export const trackEvent = (eventName: string, properties?: Record<string, any>) 
         console.log(`[Mixpanel Mock] Event: ${eventName}`, properties);
     }
 };
+
+export const identifyUser = (distinctId: string) => {
+    if (MIXPANEL_TOKEN && MIXPANEL_TOKEN !== 'REPLACE_WITH_YOUR_MIXPANEL_TOKEN') {
+        mixpanel.identify(distinctId);
+    } else {
+        console.log(`[Mixpanel Mock] Identify: ${distinctId}`);
+    }
+};

@@ -26,7 +26,7 @@ export const ConnectCalendar: React.FC<ConnectCalendarProps> = ({
 
             <div className="p-8">
                 <p className="text-slate-600 mb-8 text-sm leading-relaxed font-medium">
-                    Connect your calendar to get a full breakdown of your meetings in the last <span className="font-bold text-slate-900">30 days</span>, and what it costs.
+                    Connect your calendar to get a full breakdown of how much time you have spent in meetings and context switching over the past few weeks.
                 </p>
 
                 <button
