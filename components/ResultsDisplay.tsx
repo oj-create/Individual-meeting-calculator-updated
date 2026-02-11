@@ -142,8 +142,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onReset
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <p className="text-3xl font-bold mb-1 text-orange-400">{formatNumber(distractionHoursPerWeek)} hrs</p>
-                        <p className="text-xs text-slate-400">Lost weekly to context switching</p>
+                        <p className="text-3xl font-bold mb-1 text-orange-400">{formatNumber(totalDistractionHours)} hrs</p>
+                        <p className="text-xs text-slate-400">Lost in {periodDays} days to context switching</p>
                     </div>
                 </div>
                 <p className="mt-4 text-xs text-slate-500 leading-relaxed border-t border-slate-800 pt-4">
