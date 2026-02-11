@@ -17,7 +17,7 @@ export const ConnectCalendar: React.FC<ConnectCalendarProps> = ({
                     <div className="bg-[#814fdc]/20 p-2 rounded-lg">
                         <Calendar className="w-6 h-6 text-[#814fdc]" />
                     </div>
-                    <h2 className="text-white font-bold text-lg">Individual Audit</h2>
+                    <h2 className="text-white font-bold text-lg">Personal Meeting Audit</h2>
                 </div>
                 <div className="px-2 py-1 bg-slate-800 rounded text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     Private

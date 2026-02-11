@@ -100,22 +100,6 @@ export const MethodologyDisclosure: React.FC<MethodologyProps> = ({
             </div>
           </section>
 
-          {/* Step 3: Cost Valuation */}
-          <section className="space-y-3">
-            <h5 className="font-bold text-slate-900 flex items-center uppercase tracking-wide text-xs">
-              <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded mr-2">Step 3</span>
-              Value Calculation
-            </h5>
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
-              <p className="text-sm">
-                To estimate the financial impact, we apply a standardized blended hourly rate of <strong>{formatCurrency(hourlyRate)}/hr</strong> to your total meeting and context switching hours.
-              </p>
-              <p className="text-xs text-slate-400 mt-2">
-                This provides a baseline for the "company cost" of your time spent in these activities.
-              </p>
-            </div>
-          </section>
-
         </div>
       )}
     </div>
