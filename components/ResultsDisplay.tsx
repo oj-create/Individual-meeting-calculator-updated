@@ -19,20 +19,28 @@ const formatNumber = (val: number) => {
 };
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onReset, periodDays, onPeriodChange }) => {
-    // Determine wasted hours vs productive hours (assuming 40h work week)
-    const workHours = Math.max(0, 40 - results.hoursPerWeek);
+    // Calculate totals for the selected period
+    // Assumes 40h work week capacity
+    const weeksInPeriod = results.periodDays / 7;
+    const totalCapacityHours = weeksInPeriod * 40;
 
-    // Distraction Tax: 23 mins per meeting
+    // Distraction Tax: 23 mins per meeting (Total for period)
+    const totalDistractionHours = (results.totalMeetings * 23) / 60;
+
+    // Productive Hours = Capacity - Meetings - Distraction
+    const workHours = Math.max(0, totalCapacityHours - results.totalHours - totalDistractionHours);
+
+    // Distraction for context switching card (keep as weekly avg for the card? or total? 
+    // The visual design of the card says "Lost weekly". Let's keep the CARD as weekly for consistency with the text below it which explains the metric. 
+    // BUT the user asked for the PIECHART to change.
+
+    // Let's recalculate the distraction weekly avg for the card display to be safe
     const distractionHoursPerWeek = (results.meetingsPerWeek * 23) / 60;
-    const districtionCostAnnual = distractionHoursPerWeek * (results.totalCost / results.totalHours) * 52; // annualized approximation based on rate
-    // Note: totalCost in results is for the period (30 days). We should extrapolate.
-    const weeklyCost = results.totalCost / (results.periodDays / 7);
-    const annualCost = weeklyCost * 48; // 48 working weeks
 
     const chartData = [
         { name: 'Productive Work', value: workHours, color: '#94a3b8' }, // Slate-400
-        { name: 'Meetings', value: results.hoursPerWeek, color: '#ef4444' }, // Red-500
-        { name: 'Context Switching', value: distractionHoursPerWeek, color: '#f97316' }, // Orange-500
+        { name: 'Meetings', value: results.totalHours, color: '#ef4444' }, // Red-500
+        { name: 'Context Switching', value: totalDistractionHours, color: '#f97316' }, // Orange-500
     ];
 
     return (
@@ -49,8 +57,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onReset
                                     key={days}
                                     onClick={() => onPeriodChange(days)}
                                     className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${periodDays === days
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-700'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
                                         }`}
                                 >
                                     {days}d
@@ -82,10 +90,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onReset
                 </div>
             </div>
 
-            {/* 2. Weekly Allocation Chart */}
+            {/* 2. Allocation Chart (Dynamic Period) */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col h-[400px] relative">
                 <div className="absolute top-6 left-6 z-10 pointer-events-none">
-                    <h3 className="text-slate-700 font-bold text-lg">Your Weekly Time Allocation</h3>
+                    <h3 className="text-slate-700 font-bold text-lg">Your {periodDays}d Time Allocation</h3>
                 </div>
                 <div className="flex-grow">
                     <ResponsiveContainer width="100%" height="100%">
@@ -105,7 +113,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onReset
                                 ))}
                             </Pie>
                             <Tooltip
-                                formatter={(value: number) => `${formatNumber(value)} hrs/week`}
+                                formatter={(value: number) => `${formatNumber(value)} hrs`}
                                 contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                                 itemStyle={{ color: '#fff' }}
                             />
@@ -119,7 +127,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onReset
                     </ResponsiveContainer>
                 </div>
                 <p className="text-center text-xs text-slate-400 mt-4">
-                    Assumes a standard 40-hour work week.
+                    Based on a 40-hour work week capacity ({Math.round(totalCapacityHours)}h total).
                 </p>
             </div>
 
