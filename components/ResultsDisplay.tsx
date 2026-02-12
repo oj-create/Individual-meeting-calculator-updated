@@ -49,23 +49,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onReset
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900">Your Personal Audit</h2>
-                    <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-slate-500 text-sm">Time Range:</span>
-                        <div className="flex bg-slate-100 rounded-lg p-1">
-                            {[7, 14, 30, 90].map((days) => (
-                                <button
-                                    key={days}
-                                    onClick={() => onPeriodChange(days)}
-                                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${periodDays === days
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-700'
-                                        }`}
-                                >
-                                    {days}d
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    <p className="text-slate-500 text-sm mt-1">Based on last {periodDays} days</p>
                 </div>
                 <button
                     onClick={onReset}

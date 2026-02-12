@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ConnectCalendar } from './components/ConnectCalendar';
 import { ResultsDisplay } from './components/ResultsDisplay';
+import { FilterControls } from './components/FilterControls';
 // Ensuring correct import path
 import { MethodologyDisclosure } from './components/MethodologyDisclosure';
 import { loadGoogleScripts, handleAuthClick, listUpcomingEvents, getUserProfile } from './utils/googleCalendar';
@@ -20,6 +21,12 @@ function App() {
   const [allEvents, setAllEvents] = useState<any[]>([]); // Store raw 90-day events
   const [periodDays, setPeriodDays] = useState<number>(30); // Default to 30 days
 
+  // Advanced filters
+  const [filterMinAttendees, setFilterMinAttendees] = useState<number>(2);
+  const [filterSpecificParticipant, setFilterSpecificParticipant] = useState<string>('');
+  const [filterWorkHours, setFilterWorkHours] = useState<boolean>(false);
+  const [currentPeriodEventCount, setCurrentPeriodEventCount] = useState<number>(0);
+
   useEffect(() => {
     loadGoogleScripts(() => {
       console.log('Google Scripts Loaded');
@@ -28,7 +35,7 @@ function App() {
     trackEvent('page_view', { page: 'individual_calculator' });
   }, []);
 
-  // Re-calculate stats when periodDays or allEvents changes
+  // Re-calculate stats when periodDays, allEvents, or filters change
   useEffect(() => {
     if (allEvents.length === 0) return;
 
@@ -38,16 +45,24 @@ function App() {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - periodDays);
 
-    const filteredEvents = allEvents.filter(event => {
+    const dateFilteredEvents = allEvents.filter(event => {
       if (!event.start.dateTime) return false;
       const eventDate = new Date(event.start.dateTime);
       return eventDate >= cutoffDate;
     });
 
-    const stats = calculateMeetingStats(filteredEvents, rate, periodDays);
+    setCurrentPeriodEventCount(dateFilteredEvents.length);
+
+    const filters = {
+      minAttendees: filterMinAttendees,
+      specificParticipant: filterSpecificParticipant,
+      workHoursOnly: filterWorkHours
+    };
+
+    const stats = calculateMeetingStats(dateFilteredEvents, rate, periodDays, filters);
     setResults(stats);
 
-  }, [periodDays, allEvents]);
+  }, [periodDays, allEvents, filterMinAttendees, filterSpecificParticipant, filterWorkHours]);
 
   const handleConnect = async () => {
     setIsLoading(true);
@@ -71,9 +86,6 @@ function App() {
       setAllEvents(events); // This triggers the useEffect above
       setPeriodDays(30); // Default to 30 days on new connect
 
-      // Initial stats for 30 days (calculated in useEffect, but could be done here for immediate feedback if needed)
-      // The useEffect will handle the initial calculation once allEvents is set.
-
       trackEvent('data_fetched', {
         count: events.length,
         period: maxDays
@@ -92,6 +104,9 @@ function App() {
     setResults(null);
     setAllEvents([]);
     setIsConnected(false);
+    setFilterMinAttendees(2);
+    setFilterSpecificParticipant('');
+    setFilterWorkHours(false);
     trackEvent('calculator_reset');
   };
 
@@ -200,11 +215,28 @@ Check yours at Quely.io/meeting-cost-calculator`;
           />
         ) : (
           <>
+            {/* Filter Controls */}
+            {results && (
+              <FilterControls
+                periodDays={periodDays}
+                onPeriodChange={setPeriodDays}
+                minAttendees={filterMinAttendees}
+                onMinAttendeesChange={setFilterMinAttendees}
+                specificParticipant={filterSpecificParticipant}
+                onSpecificParticipantChange={setFilterSpecificParticipant}
+                workHoursOnly={filterWorkHours}
+                onWorkHoursChange={setFilterWorkHours}
+                totalEvents={currentPeriodEventCount}
+                filteredEvents={results.totalMeetings}
+              />
+            )}
+
             <ResultsDisplay
               results={results}
               onReset={handleReset}
+              // periodDays controls moved to FilterControls, but ResultsDisplay uses it for display
               periodDays={periodDays}
-              onPeriodChange={setPeriodDays}
+              onPeriodChange={setPeriodDays} // Kept for interface compatibility or if ResultsDisplay still uses it
             />
 
             {/* Action Buttons */}
@@ -248,7 +280,7 @@ Check yours at Quely.io/meeting-cost-calculator`;
             <MethodologyDisclosure
               data={results}
               hourlyRate={50}
-              periodDays={30} // default
+              periodDays={periodDays}
             />
           </>
         )}
