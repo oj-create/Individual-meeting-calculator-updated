@@ -114,14 +114,16 @@ function App() {
     if (!results) return '';
 
     // Helper formatters
-    const fmtCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
     const fmtNumber = (val: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(val);
+
+    const participantText = filterSpecificParticipant
+      ? ` with ${filterSpecificParticipant}`
+      : '';
 
     return `
 🗓️ MEETING COST REALITY CHECK
 
-"You spent ${Math.round(results.totalHours)} hours across ${results.totalMeetings} meetings in the last ${results.periodDays} days..."
-...and it cost roughly ${fmtCurrency(results.totalCost)} in focus time. 💸
+"You spent ${Math.round(results.totalHours)} hours across ${results.totalMeetings} meetings${participantText} in the last ${results.periodDays} days..."
 
 That is ${Math.round((results.hoursPerWeek / 40) * 100)}% of your entire work month gone to meetings.
 
@@ -143,12 +145,14 @@ Check your own stats at Quely.io/meeting-cost-calculator
   const handleLinkedinShare = () => {
     if (!results) return;
     const roundedHours = Math.round(results.totalHours);
-    const cost = Math.round(results.totalCost);
 
-    const text = `Just used Quely meeting calculator to review my meetings for the past month,
+    const participantText = filterSpecificParticipant
+      ? ` with ${filterSpecificParticipant}`
+      : '';
+
+    const text = `Just used Quely meeting calculator to review my meetings for the past month${participantText},
 
 ${roundedHours} hours across ${results.totalMeetings} meetings.
-$${cost} of my time.
 
 Check yours at Quely.io/meeting-cost-calculator`;
 
