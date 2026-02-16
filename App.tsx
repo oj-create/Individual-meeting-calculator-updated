@@ -28,14 +28,34 @@ function App() {
   const [filterWorkHours, setFilterWorkHours] = useState<boolean>(false);
   const [currentPeriodEventCount, setCurrentPeriodEventCount] = useState<number>(0);
 
+  // Detect if running in a popup (Outlook Auth Redirect)
+  const isPopup = typeof window !== 'undefined' && window.opener && window !== window.opener;
+
   useEffect(() => {
     loadGoogleScripts(() => {
       console.log('Google Scripts Loaded');
     });
+
+    // Initialize MSAL
     initMsal().catch(e => console.error('MSAL Init Failed', e));
-    initMixpanel();
-    trackEvent('page_view', { page: 'individual_calculator' });
-  }, []);
+
+    if (!isPopup) {
+      initMixpanel();
+      trackEvent('page_view', { page: 'individual_calculator' });
+    }
+  }, [isPopup]);
+
+  // If this is the auth popup, just show a loading state and let MSAL handle the hash
+  if (isPopup) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-slate-700 mb-2">Authenticating...</h2>
+          <p className="text-slate-500">Please wait while we connect your account.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Re-calculate stats when periodDays, allEvents, or filters change
   useEffect(() => {

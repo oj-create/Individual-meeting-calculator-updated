@@ -15,11 +15,30 @@ const msalConfig = {
 export const msalInstance = new PublicClientApplication(msalConfig);
 
 // Initialize MSAL
+let msalInitPromise: Promise<void> | null = null;
+
 export const initMsal = async () => {
-    if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
-        msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
-    }
-    await msalInstance.initialize();
+    if (msalInitPromise) return msalInitPromise;
+
+    msalInitPromise = (async () => {
+        try {
+            // Check if already initialized (v3 specific check if available, or just try/catch)
+            await msalInstance.initialize();
+        } catch (err: any) {
+            // Provide a way to recover if it's "already initialized"
+            if (err.message && err.message.includes("already initialized")) {
+                return;
+            }
+            console.error("MSAL Initialize Error:", err);
+            throw err;
+        }
+
+        if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
+            msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
+        }
+    })();
+
+    return msalInitPromise;
 };
 
 export const signIn = async (): Promise<AccountInfo | null> => {
@@ -30,8 +49,12 @@ export const signIn = async (): Promise<AccountInfo | null> => {
         });
         msalInstance.setActiveAccount(loginResponse.account);
         return loginResponse.account;
-    } catch (err) {
+    } catch (err: any) {
         console.error('MSAL Login Failed:', err);
+        // Handle interaction_in_progress specifically
+        if (err.errorCode === 'interaction_in_progress' || err.message?.includes('interaction_in_progress')) {
+            throw new Error("A login popup is already open. Please close it or refresh the page.");
+        }
         throw err;
     }
 };
