@@ -21,8 +21,12 @@ function App() {
   // New state for time range filtering
   const [allEvents, setAllEvents] = useState<any[]>([]); // Store raw 90-day events
   const [periodDays, setPeriodDays] = useState<number>(30); // Default to 30 days
+  // Debug logging state
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const addLog = (msg: string) => setDebugLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]}: ${msg}`]);
 
   // Advanced filters
+
   const [filterMinAttendees, setFilterMinAttendees] = useState<number>(2);
   const [filterSpecificParticipant, setFilterSpecificParticipant] = useState<string>('');
   const [filterWorkHours, setFilterWorkHours] = useState<boolean>(false);
@@ -140,8 +144,10 @@ function App() {
   const handleConnectOutlook = async () => {
     setIsLoading(true);
     setError(null);
+    addLog("User clicked Connect Outlook");
     try {
       // This will redirect the page
+      addLog("Starting signIn()...");
       await signIn();
     } catch (err: any) {
       console.error('Outlook Connection failed', err);
@@ -343,6 +349,14 @@ Check yours at Quely.io/meeting-cost-calculator`;
 
         <div className="text-center text-slate-400 text-sm pb-8 mt-12">
           <p>&copy; {new Date().getFullYear()} Quely. Calculations based on estimated hourly rate.</p>
+        </div>
+
+        {/* DEBUG LOG SECTION */}
+        <div className="mt-8 p-4 bg-slate-900 text-green-400 font-mono text-xs rounded-lg overflow-auto max-h-60">
+          <h3 className="text-white font-bold mb-2 border-b border-slate-700 pb-1">DEBUG LOGS (Take Screenshot if stuck)</h3>
+          {debugLogs.length === 0 ? <div className="opacity-50">Waiting for logs...</div> : debugLogs.map((log, i) => (
+            <div key={i}>{log}</div>
+          ))}
         </div>
 
       </main>
