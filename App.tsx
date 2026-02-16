@@ -6,6 +6,7 @@ import { FilterControls } from './components/FilterControls';
 import { MethodologyDisclosure } from './components/MethodologyDisclosure';
 import { loadGoogleScripts, handleAuthClick, listUpcomingEvents, getUserProfile } from './utils/googleCalendar';
 import { initMsal, signIn, getOutlookEvents } from './utils/microsoftGraph';
+import { parseICSFile } from './utils/appleCalendar';
 import { calculateMeetingStats, type CalculationResult } from './utils/calculator';
 import { initMixpanel, trackEvent, identifyUser } from './utils/analytics';
 import { ArrowRight, Copy, CheckCircle2 } from 'lucide-react';
@@ -152,6 +153,26 @@ function App() {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const events = await parseICSFile(file);
+      setAllEvents(events);
+      setPeriodDays(30);
+      setIsConnected(true);
+
+      trackEvent('data_fetched', { count: events.length, period: 90, provider: 'apple_ics' });
+      trackEvent('calendar_connected', { success: true, provider: 'apple_ics' });
+    } catch (err: any) {
+      console.error('File upload failed', err);
+      setError(err.message || 'Failed to parse calendar file. Please ensure it is a valid .ics file.');
+      trackEvent('calendar_connected', { success: false, error: err.message, provider: 'apple_ics' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleReset = () => {
     setResults(null);
     setAllEvents([]);
@@ -268,6 +289,7 @@ Check yours at Quely.io/meeting-cost-calculator`;
           <ConnectCalendar
             onConnectGoogle={handleConnectGoogle}
             onConnectOutlook={handleConnectOutlook}
+            onFileUpload={handleFileUpload}
             isLoading={isLoading}
           />
         ) : (

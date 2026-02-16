@@ -4,12 +4,14 @@ import { Calendar, DollarSign, ArrowRight, ShieldCheck } from 'lucide-react';
 interface ConnectCalendarProps {
     onConnectGoogle: () => void;
     onConnectOutlook: () => void;
+    onFileUpload: (file: File) => void;
     isLoading: boolean;
 }
 
 export const ConnectCalendar: React.FC<ConnectCalendarProps> = ({
     onConnectGoogle,
     onConnectOutlook,
+    onFileUpload,
     isLoading
 }) => {
     return (
@@ -67,6 +69,28 @@ export const ConnectCalendar: React.FC<ConnectCalendarProps> = ({
                         <span>Connect Outlook Calendar</span>
                         <ArrowRight className="w-5 h-5" />
                     </button>
+
+                    <div className="relative">
+                        <input
+                            type="file"
+                            accept=".ics"
+                            className="hidden"
+                            id="ics-upload"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    onFileUpload(file);
+                                }
+                            }}
+                        />
+                        <label
+                            htmlFor="ics-upload"
+                            className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg text-sm font-bold text-slate-700 bg-white border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-sm transition-all cursor-pointer ${isLoading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                        >
+                            <span>Upload Calendar File (.ics)</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-upload"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" /></svg>
+                        </label>
+                    </div>
                 </div>
             </div>
 
