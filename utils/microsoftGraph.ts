@@ -15,51 +15,43 @@ const msalConfig = {
 export const msalInstance = new PublicClientApplication(msalConfig);
 
 // Initialize MSAL
-let msalInitPromise: Promise<void> | null = null;
+let msalInitPromise: Promise<import('@azure/msal-browser').AuthenticationResult | null> | null = null;
 
 export const initMsal = async () => {
     if (msalInitPromise) return msalInitPromise;
 
     msalInitPromise = (async () => {
         try {
-            // Check if already initialized (v3 specific check if available, or just try/catch)
             await msalInstance.initialize();
 
-            // Explicitly handle redirect promise. This is crucial for processing the hash 
-            // in the popup window and closing it.
-            await msalInstance.handleRedirectPromise();
+            // Handle redirect promise and return the result
+            const result = await msalInstance.handleRedirectPromise();
+
+            if (result && result.account) {
+                msalInstance.setActiveAccount(result.account);
+            } else if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
+                msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
+            }
+            return result;
 
         } catch (err: any) {
-            // Provide a way to recover if it's "already initialized"
-            if (err.message && err.message.includes("already initialized")) {
-                return;
-            }
             console.error("MSAL Initialize Error:", err);
             throw err;
-        }
-
-        if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
-            msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
         }
     })();
 
     return msalInitPromise;
 };
 
-export const signIn = async (): Promise<AccountInfo | null> => {
+export const signIn = async (): Promise<void> => {
     try {
-        const loginResponse = await msalInstance.loginPopup({
+        await msalInstance.loginRedirect({
             scopes: ['User.Read', 'Calendars.Read'],
             prompt: 'select_account',
         });
-        msalInstance.setActiveAccount(loginResponse.account);
-        return loginResponse.account;
-    } catch (err: any) {
+        // execution ends here as page redirects
+    } catch (err) {
         console.error('MSAL Login Failed:', err);
-        // Handle interaction_in_progress specifically
-        if (err.errorCode === 'interaction_in_progress' || err.message?.includes('interaction_in_progress')) {
-            throw new Error("A login popup is already open. Please close it or refresh the page.");
-        }
         throw err;
     }
 };

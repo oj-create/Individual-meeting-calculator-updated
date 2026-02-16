@@ -28,39 +28,48 @@ function App() {
   const [filterWorkHours, setFilterWorkHours] = useState<boolean>(false);
   const [currentPeriodEventCount, setCurrentPeriodEventCount] = useState<number>(0);
 
-  // Detect if running in a popup (Outlook Auth Redirect)
-  // We check for window.opener OR if the URL contains auth response codes (which happens in the popup)
-  const isPopup = typeof window !== 'undefined' && (
-    (window.opener && window !== window.opener) ||
-    window.location.hash.includes('code=') ||
-    window.location.hash.includes('error=')
-  );
-
   useEffect(() => {
     loadGoogleScripts(() => {
       console.log('Google Scripts Loaded');
     });
 
-    // Initialize MSAL
-    initMsal().catch(e => console.error('MSAL Init Failed', e));
+    const initializeAuth = async () => {
+      try {
+        const authResult = await initMsal();
 
-    if (!isPopup) {
-      initMixpanel();
-      trackEvent('page_view', { page: 'individual_calculator' });
-    }
-  }, [isPopup]);
+        // If we are returning from a redirect login
+        if (authResult && authResult.account) {
+          console.log("Returned from Redirect Login");
+          identifyUser(authResult.account.username);
+          trackEvent('user_identified', { email: authResult.account.username, provider: 'outlook' });
 
-  // If this is the auth popup, just show a loading state and let MSAL handle the hash
-  if (isPopup) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-slate-700 mb-2">Authenticating...</h2>
-          <p className="text-slate-500">Please wait while we connect your account.</p>
-        </div>
-      </div>
-    );
-  }
+          // Automatically fetch data after successful redirect login
+          setIsConnected(true);
+          setIsLoading(true);
+          try {
+            const maxDays = 90;
+            const events = await getOutlookEvents(maxDays);
+            setAllEvents(events);
+            setPeriodDays(30);
+            trackEvent('data_fetched', { count: events.length, period: maxDays, provider: 'outlook' });
+            trackEvent('calendar_connected', { success: true, provider: 'outlook' });
+          } catch (err: any) {
+            console.error("Failed to fetch Outlook events after redirect", err);
+            setError(err.message || 'Failed to fetch Outlook calendar data.');
+          } finally {
+            setIsLoading(false);
+          }
+        }
+      } catch (e) {
+        console.error('MSAL Init Failed', e);
+      }
+    };
+
+    initializeAuth();
+
+    initMixpanel();
+    trackEvent('page_view', { page: 'individual_calculator' });
+  }, []);
 
   // Re-calculate stats when periodDays, allEvents, or filters change
   useEffect(() => {
@@ -132,31 +141,12 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const account = await signIn();
-      if (account) {
-        identifyUser(account.username);
-        trackEvent('user_identified', { email: account.username, provider: 'outlook' });
-      }
-
-      setIsConnected(true);
-      trackEvent('calendar_connected', { success: true, provider: 'outlook' });
-
-      const maxDays = 90;
-      const events = await getOutlookEvents(maxDays);
-      setAllEvents(events);
-      setPeriodDays(30);
-
-      trackEvent('data_fetched', {
-        count: events.length,
-        period: maxDays,
-        provider: 'outlook'
-      });
-
+      // This will redirect the page
+      await signIn();
     } catch (err: any) {
       console.error('Outlook Connection failed', err);
       setError(err.message || 'Failed to connect to Outlook. Please try again.');
       trackEvent('calendar_connected', { success: false, error: err.message, provider: 'outlook' });
-    } finally {
       setIsLoading(false);
     }
   };
