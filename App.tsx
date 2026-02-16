@@ -36,15 +36,11 @@ function App() {
     });
 
     const initializeAuth = async () => {
-      addLog("Initializing Auth...");
       try {
-        addLog("Calling initMsal...");
         const authResult = await initMsal();
-        addLog(`initMsal finished. Result: ${authResult ? 'Found Payload' : 'Null'}`);
 
         // If we are returning from a redirect login
         if (authResult && authResult.account) {
-          addLog(`Redirect Login Success: ${authResult.account.username}`);
           identifyUser(authResult.account.username);
           trackEvent('user_identified', { email: authResult.account.username, provider: 'outlook' });
 
@@ -52,26 +48,20 @@ function App() {
           setIsConnected(true);
           setIsLoading(true);
           try {
-            addLog("Fetching Outlook Events...");
             const maxDays = 90;
             const events = await getOutlookEvents(maxDays);
-            addLog(`Fetched ${events.length} events`);
             setAllEvents(events);
             setPeriodDays(30);
             trackEvent('data_fetched', { count: events.length, period: maxDays, provider: 'outlook' });
             trackEvent('calendar_connected', { success: true, provider: 'outlook' });
           } catch (err: any) {
-            addLog(`Fetch Failed: ${err.message}`);
             console.error("Failed to fetch Outlook events after redirect", err);
             setError(err.message || 'Failed to fetch Outlook calendar data.');
           } finally {
             setIsLoading(false);
           }
-        } else {
-          addLog("No auth payload found (Normal load)");
         }
       } catch (e: any) {
-        addLog(`Auth Init Error: ${e.message}`);
         console.error('MSAL Init Failed', e);
       }
     };
@@ -356,13 +346,7 @@ Check yours at Quely.io/meeting-cost-calculator`;
           <p>&copy; {new Date().getFullYear()} Quely. Calculations based on estimated hourly rate.</p>
         </div>
 
-        {/* DEBUG LOG SECTION */}
-        <div className="mt-8 p-4 bg-slate-900 text-green-400 font-mono text-xs rounded-lg overflow-auto max-h-60">
-          <h3 className="text-white font-bold mb-2 border-b border-slate-700 pb-1">DEBUG LOGS (Take Screenshot if stuck)</h3>
-          {debugLogs.length === 0 ? <div className="opacity-50">Waiting for logs...</div> : debugLogs.map((log, i) => (
-            <div key={i}>{log}</div>
-          ))}
-        </div>
+
 
       </main>
     </div>
