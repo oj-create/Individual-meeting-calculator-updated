@@ -74,7 +74,7 @@ function App() {
 
   // Re-calculate stats when periodDays, allEvents, or filters change
   useEffect(() => {
-    // if (allEvents.length === 0) return; // REMOVED to allow 0-meeting results
+    if (!isConnected) return; // Only calculate if user has connected
 
     const rate = 50; // Hardcoded default rate
 
