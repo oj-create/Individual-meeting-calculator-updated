@@ -86,7 +86,7 @@ function App() {
 
   // Re-calculate stats when periodDays, allEvents, or filters change
   useEffect(() => {
-    if (allEvents.length === 0) return;
+    // if (allEvents.length === 0) return; // REMOVED to allow 0-meeting results
 
     const rate = 50; // Hardcoded default rate
 
