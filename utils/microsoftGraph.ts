@@ -24,6 +24,11 @@ export const initMsal = async () => {
         try {
             // Check if already initialized (v3 specific check if available, or just try/catch)
             await msalInstance.initialize();
+
+            // Explicitly handle redirect promise. This is crucial for processing the hash 
+            // in the popup window and closing it.
+            await msalInstance.handleRedirectPromise();
+
         } catch (err: any) {
             // Provide a way to recover if it's "already initialized"
             if (err.message && err.message.includes("already initialized")) {
