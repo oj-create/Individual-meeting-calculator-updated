@@ -38,12 +38,15 @@ function App() {
     });
 
     const initializeAuth = async () => {
+      addLog("Initializing Auth...");
       try {
+        addLog("Calling initMsal...");
         const authResult = await initMsal();
+        addLog(`initMsal finished. Result: ${authResult ? 'Found Payload' : 'Null'}`);
 
         // If we are returning from a redirect login
         if (authResult && authResult.account) {
-          console.log("Returned from Redirect Login");
+          addLog(`Redirect Login Success: ${authResult.account.username}`);
           identifyUser(authResult.account.username);
           trackEvent('user_identified', { email: authResult.account.username, provider: 'outlook' });
 
@@ -51,20 +54,26 @@ function App() {
           setIsConnected(true);
           setIsLoading(true);
           try {
+            addLog("Fetching Outlook Events...");
             const maxDays = 90;
             const events = await getOutlookEvents(maxDays);
+            addLog(`Fetched ${events.length} events`);
             setAllEvents(events);
             setPeriodDays(30);
             trackEvent('data_fetched', { count: events.length, period: maxDays, provider: 'outlook' });
             trackEvent('calendar_connected', { success: true, provider: 'outlook' });
           } catch (err: any) {
+            addLog(`Fetch Failed: ${err.message}`);
             console.error("Failed to fetch Outlook events after redirect", err);
             setError(err.message || 'Failed to fetch Outlook calendar data.');
           } finally {
             setIsLoading(false);
           }
+        } else {
+          addLog("No auth payload found (Normal load)");
         }
-      } catch (e) {
+      } catch (e: any) {
+        addLog(`Auth Init Error: ${e.message}`);
         console.error('MSAL Init Failed', e);
       }
     };
