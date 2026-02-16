@@ -29,7 +29,12 @@ function App() {
   const [currentPeriodEventCount, setCurrentPeriodEventCount] = useState<number>(0);
 
   // Detect if running in a popup (Outlook Auth Redirect)
-  const isPopup = typeof window !== 'undefined' && window.opener && window !== window.opener;
+  // We check for window.opener OR if the URL contains auth response codes (which happens in the popup)
+  const isPopup = typeof window !== 'undefined' && (
+    (window.opener && window !== window.opener) ||
+    window.location.hash.includes('code=') ||
+    window.location.hash.includes('error=')
+  );
 
   useEffect(() => {
     loadGoogleScripts(() => {
