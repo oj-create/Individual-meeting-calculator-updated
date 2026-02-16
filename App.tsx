@@ -5,6 +5,7 @@ import { FilterControls } from './components/FilterControls';
 // Ensuring correct import path
 import { MethodologyDisclosure } from './components/MethodologyDisclosure';
 import { loadGoogleScripts, handleAuthClick, listUpcomingEvents, getUserProfile } from './utils/googleCalendar';
+import { initMsal, signIn, getOutlookEvents } from './utils/microsoftGraph';
 import { calculateMeetingStats, type CalculationResult } from './utils/calculator';
 import { initMixpanel, trackEvent, identifyUser } from './utils/analytics';
 import { ArrowRight, Copy, CheckCircle2 } from 'lucide-react';
@@ -31,6 +32,7 @@ function App() {
     loadGoogleScripts(() => {
       console.log('Google Scripts Loaded');
     });
+    initMsal().catch(e => console.error('MSAL Init Failed', e));
     initMixpanel();
     trackEvent('page_view', { page: 'individual_calculator' });
   }, []);
@@ -64,7 +66,7 @@ function App() {
 
   }, [periodDays, allEvents, filterMinAttendees, filterSpecificParticipant, filterWorkHours]);
 
-  const handleConnect = async () => {
+  const handleConnectGoogle = async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -74,11 +76,11 @@ function App() {
       const userProfile = await getUserProfile();
       if (userProfile.email) {
         identifyUser(userProfile.email);
-        trackEvent('user_identified', { email: userProfile.email });
+        trackEvent('user_identified', { email: userProfile.email, provider: 'google' });
       }
 
       setIsConnected(true);
-      trackEvent('calendar_connected', { success: true });
+      trackEvent('calendar_connected', { success: true, provider: 'google' });
 
       // Fetch 90 days of data upfront to allow client-side filtering
       const maxDays = 90;
@@ -88,13 +90,47 @@ function App() {
 
       trackEvent('data_fetched', {
         count: events.length,
-        period: maxDays
+        period: maxDays,
+        provider: 'google'
       });
 
     } catch (err: any) {
       console.error('Connection failed', err);
       setError(err.message || 'Failed to connect to Google Calendar. Please try again.');
-      trackEvent('calendar_connected', { success: false, error: err.message });
+      trackEvent('calendar_connected', { success: false, error: err.message, provider: 'google' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConnectOutlook = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const account = await signIn();
+      if (account) {
+        identifyUser(account.username);
+        trackEvent('user_identified', { email: account.username, provider: 'outlook' });
+      }
+
+      setIsConnected(true);
+      trackEvent('calendar_connected', { success: true, provider: 'outlook' });
+
+      const maxDays = 90;
+      const events = await getOutlookEvents(maxDays);
+      setAllEvents(events);
+      setPeriodDays(30);
+
+      trackEvent('data_fetched', {
+        count: events.length,
+        period: maxDays,
+        provider: 'outlook'
+      });
+
+    } catch (err: any) {
+      console.error('Outlook Connection failed', err);
+      setError(err.message || 'Failed to connect to Outlook. Please try again.');
+      trackEvent('calendar_connected', { success: false, error: err.message, provider: 'outlook' });
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +250,8 @@ Check yours at Quely.io/meeting-cost-calculator`;
 
         {!results ? (
           <ConnectCalendar
-            onConnect={handleConnect}
+            onConnectGoogle={handleConnectGoogle}
+            onConnectOutlook={handleConnectOutlook}
             isLoading={isLoading}
           />
         ) : (

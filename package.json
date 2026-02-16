@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.2.0",
+    "@azure/msal-react": "^5.0.4",
     "gapi-script": "^1.2.0",
     "lucide-react": "^0.555.0",
     "mixpanel-browser": "^2.74.0",

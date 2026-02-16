@@ -2,12 +2,14 @@ import React from 'react';
 import { Calendar, DollarSign, ArrowRight, ShieldCheck } from 'lucide-react';
 
 interface ConnectCalendarProps {
-    onConnect: () => void;
+    onConnectGoogle: () => void;
+    onConnectOutlook: () => void;
     isLoading: boolean;
 }
 
 export const ConnectCalendar: React.FC<ConnectCalendarProps> = ({
-    onConnect,
+    onConnectGoogle,
+    onConnectOutlook,
     isLoading
 }) => {
     return (
@@ -29,29 +31,43 @@ export const ConnectCalendar: React.FC<ConnectCalendarProps> = ({
                     Connect your calendar to get a full breakdown of how much time you have spent in meetings and context switching over the past few weeks.
                 </p>
 
-                <button
-                    onClick={onConnect}
-                    disabled={isLoading}
-                    className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg text-sm font-bold text-white shadow-md transition-all ${isLoading
-                        ? 'bg-slate-400 cursor-not-allowed'
-                        : 'bg-[#814fdc] hover:bg-[#6b3dbd] hover:shadow-lg transform hover:-translate-y-0.5'
-                        }`}
-                >
-                    {isLoading ? (
-                        <span className="flex items-center justify-center w-full">
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Auditing Calendar...
-                        </span>
-                    ) : (
-                        <>
-                            <span>Connect Google Calendar</span>
-                            <ArrowRight className="w-5 h-5" />
-                        </>
-                    )}
-                </button>
+                <div className="space-y-4">
+                    <button
+                        onClick={onConnectGoogle}
+                        disabled={isLoading}
+                        className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg text-sm font-bold text-white shadow-md transition-all ${isLoading
+                            ? 'bg-slate-400 cursor-not-allowed'
+                            : 'bg-[#814fdc] hover:bg-[#6b3dbd] hover:shadow-lg transform hover:-translate-y-0.5'
+                            }`}
+                    >
+                        {isLoading ? (
+                            <span className="flex items-center justify-center w-full">
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Auditing Calendar...
+                            </span>
+                        ) : (
+                            <>
+                                <span>Connect Google Calendar</span>
+                                <ArrowRight className="w-5 h-5" />
+                            </>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={onConnectOutlook}
+                        disabled={isLoading}
+                        className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg text-sm font-bold text-white shadow-md transition-all ${isLoading
+                            ? 'bg-slate-400 cursor-not-allowed'
+                            : 'bg-[#0078D4] hover:bg-[#005a9e] hover:shadow-lg transform hover:-translate-y-0.5'
+                            }`}
+                    >
+                        <span>Connect Outlook Calendar</span>
+                        <ArrowRight className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
 
             <div className="bg-slate-50 p-4 border-t border-slate-100 flex items-center justify-center space-x-2 text-slate-500">
