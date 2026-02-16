@@ -21,9 +21,7 @@ function App() {
   // New state for time range filtering
   const [allEvents, setAllEvents] = useState<any[]>([]); // Store raw 90-day events
   const [periodDays, setPeriodDays] = useState<number>(30); // Default to 30 days
-  // Debug logging state
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
-  const addLog = (msg: string) => setDebugLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]}: ${msg}`]);
+
 
   // Advanced filters
 
@@ -153,10 +151,8 @@ function App() {
   const handleConnectOutlook = async () => {
     setIsLoading(true);
     setError(null);
-    addLog("User clicked Connect Outlook");
     try {
       // This will redirect the page
-      addLog("Starting signIn()...");
       await signIn();
     } catch (err: any) {
       console.error('Outlook Connection failed', err);
